@@ -14,17 +14,28 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { UsersService } from './users.service';
 import { Serialize } from 'src/interceptors/serialize.interceptor';
 import { UserDto } from './dtos/user.dto';
+import { AuthService } from './auth.service';
+import { AuthGuard } from 'src/guards/auth.guards';
+
 @Controller('auth')
+@Serialize(UserDto) //if we apply the decorator to the class, it will be able to handle all the requests to the different services that are inside this class. It is like it will wrap each of the methods.
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private authService: AuthService,
+  ) {}
 
   @Post('/signup')
   createUser(@Body() body: CreateUserDto) {
-    console.log(body);
-    this.usersService.create(body.email, body.password);
+    /* this.usersService.create(body.email, body.password); */
+   return this.authService.signup(body.email, body.password);
   }
 
-  @Serialize(UserDto)
+  @Post('signin')
+  signin(@Body() body: CreateUserDto) {
+    return this.authService.signin(body.email, body.password);
+  }
+
   @Get('/:id') // every single part of the url is a string.
   async findUser(@Param('id') id: string) {
     console.log('hanlder is running');

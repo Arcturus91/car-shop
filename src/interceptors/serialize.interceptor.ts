@@ -6,9 +6,12 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs';
-import { plainToClass, plainToInstance } from 'class-transformer';
+import { plainToInstance } from 'class-transformer';
 
-export function Serialize(dto: any) {
+interface ClassConstructor {
+  new (...args: any[]): {};
+}
+export function Serialize(dto: ClassConstructor) {
   return UseInterceptors(new SerializeInterceptor(dto));
 } //here i am creating a function that uses the class below
 //functions can be used as decorators.
@@ -21,6 +24,8 @@ export class SerializeInterceptor implements NestInterceptor {
   //implements : create new class that satisfy all the requirements of an abstract class or interface
   constructor(private dto: any) {}
   intercept(context: ExecutionContext, handler: CallHandler): Observable<any> {
+
+
     return handler.handle().pipe(
       map((data: any) => {
         //run something before the response is sent out
@@ -29,6 +34,8 @@ export class SerializeInterceptor implements NestInterceptor {
         return plainToInstance(this.dto, data, {
           excludeExtraneousValues: true, //will expose only the properties that are with the expose decorator in the dto.
         });
+
+        
       }),
     );
   }
